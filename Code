@@ -1,0 +1,136 @@
+# import packages
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# open data
+df = pd.read_csv("songs_normalize.csv", sep=',')
+df
+
+# print data types of columns
+print(df.dtypes)
+
+df.shape
+
+df.describe()
+# all column names codable; no renaming necessary
+
+# Counting missing values (NaN) in all columns
+nan_count = df.isna().sum()
+print(nan_count)
+# no NaN values; no treatment necessary
+
+# selecting all numerical columns for plotting
+df_numerical = df.select_dtypes('number')
+
+# boxplots of all numerical attributes of the dataset
+plt.subplots(figsize=(20,8))
+
+count=1
+for i in df_numerical:
+    plt.subplot(2,10,count)
+    sns.boxplot(data=df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Spotify Top Hits: Boxplots of all numerical attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+plt.savefig("spotify_boxplots.png")
+
+# histrograms of all numerical attributes of the dataset
+plt.subplots(figsize=(20,15))
+
+count=1
+for i in df_numerical:
+    plt.subplot(4,5,count)
+    sns.histplot(data=df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Spotify Top Hits: Histograms of all numerical attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+
+# Correlation map including all numerical attributes
+plt.figure(figsize = (20,8))
+sns.heatmap(df_numerical.corr(), cmap='coolwarm', annot = True)
+plt.title('Spotify Top Hits: Correlation Map')
+
+# plotting pairplots with df_numerical
+sns.pairplot(df,
+             diag_kind="hist",
+             vars = ['danceability',
+                     'energy',
+                     'loudness',
+                     'speechiness',
+                     'acousticness',
+                     'liveness', 
+                     'valence'])
+
+# calculating average song duration per year
+df_duration = df[['year', 'duration_ms']].groupby('year').mean().iloc[1:-1]/1000
+df_duration.index = pd.to_datetime(df_duration.index, format='%Y')
+print(df_duration)
+
+# line plot for average annual song duration
+import plotly.express as px
+
+fig = px.line(
+    df_duration,
+    y='duration_ms',
+    markers='True',
+    title='Spotify Top Hits: Average annual song duration'
+
+    )
+
+fig.update_layout(
+    xaxis_title='Year',
+    yaxis_title='Duration (in ms)'
+    )
+
+fig.show()
+
+# showing share of explicit=='True' songs per year
+# skipping years 1998 and 2020 because of few values
+df_explicit = df[['year', 'explicit']].groupby('year').mean().iloc[1:-1]
+df_explicit.index = pd.to_datetime(df_explicit.index, format='%Y')
+
+print(df_explicit)
+
+# line plot for annual share of explicit songs
+import plotly.express as px
+
+fig = px.line(
+    df_explicit,
+    y='explicit',
+    markers='True',
+    title='Spotify Top Hits: Annual share of explicit songs'
+    )
+
+fig.update_layout(
+    xaxis_title='Year',
+    yaxis_title='Share of explicit songs'
+    )
+
+fig.show()
+
+# bar plot for explicit/non-explicit songs songs with genres
+fig =px.histogram (df,
+                   x='genre',
+                   color ='explicit',
+                   nbins=50,
+                title='Spotify Top Hits: Explicit songs in genres'
+
+    )
+
+fig.update_layout(
+    xaxis_title='Genre',
+    yaxis_title='Number of explicit songs'
+    )
+fig.show()
+
