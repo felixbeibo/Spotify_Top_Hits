@@ -85,7 +85,6 @@ fig = px.line(
     y='duration_ms',
     markers='True',
     title='Spotify Top Hits: Average annual song duration'
-
     )
 
 fig.update_layout(
